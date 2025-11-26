@@ -9,12 +9,6 @@
 - [Features](#features)
 - [Technologies Used](#technologies-used)
 - [How It Works](#how-it-works)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Folder Structure](#folder-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
 ---
 
 ## About the Project
@@ -57,16 +51,4 @@ The project also uses ESLint to enforce coding standards and optionally supports
 
 ---
 
-## Installation
-```bash
-# Clone the repository
-git clone https://github.com/your-username/codemate.git
 
-# Navigate to the project folder
-cd codemate
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
