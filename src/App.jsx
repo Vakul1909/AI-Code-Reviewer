@@ -3,7 +3,6 @@ import "./App.css"
 import Navbar from "./components/Navbar"
 import Editor from "@monaco-editor/react"
 import Select from "react-select"
-import { GoogleGenAI } from "@google/genai"
 import Markdown from 'react-markdown'
 import { BeatLoader } from "react-spinners"
 
@@ -23,16 +22,16 @@ const App = () => {
   const [selectedOption, setSelectedOption] = useState(options[0])
 
   const [code, setCode] = useState("");
-  const ai = new GoogleGenAI({ apiKey: "AIzaSyAWQ3FwdlqCIJk8sjnaMRJs3JSi5dcX9Rc" });
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState("");
 
   async function reviewcode() {
-    setResponse("")
-    setLoading(true);
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `You are an expert-level software developer, skilled in writing efficient, clean, and advanced code.
+    try {
+      setLoading(true);
+      setResponse("");
+
+      const prompt = `
+You are an expert-level software developer, skilled in writing efficient, clean, and advanced code.
 I’m sharing a piece of code written in ${selectedOption.value}.
 Your job is to deeply review this code and provide the following:
 
@@ -45,13 +44,36 @@ Your job is to deeply review this code and provide the following:
 7️⃣ Correct and Optimize Code ✅
 
 Analyze it like a senior developer reviewing a pull request.
-Code: ${code}
-`,
-    });
-    console.log(response.text);
-    setResponse(response.text);
-    setLoading(false);
+Code:
+${code}
+`;
+
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_KEY}`,
+        "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a senior code reviewer." },
+            { role: "user", content: prompt }
+          ]
+        })
+      });
+
+      const data = await res.json();
+
+      setResponse(data.choices[0].message.content);
+      setLoading(false);
+
+    } catch (err) {
+      setResponse("Error: Could not fetch AI response.");
+      setLoading(false);
+    }
   }
+
 
   return (
     <>
@@ -120,7 +142,7 @@ Code: ${code}
             height="100%"
             theme="vs-dark"
             language={selectedOption.value}
-            value={code} onChange={(e) => { setCode(e) }}
+            value={code} onChange={(value) => setCode(value || "")}
           />
         </div>
         <div className="right overflow-scroll !p-[10px] bg-zinc-900 w-[50%] h-[100%]">
